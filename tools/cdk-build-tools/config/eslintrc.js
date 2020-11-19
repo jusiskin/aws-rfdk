@@ -94,6 +94,8 @@ module.exports = {
       alphabetize: { order: 'asc', caseInsensitive: true },
     }],
 
+    'import/no-deprecated': 'error',
+
     // Cannot import from the same module twice
     'no-duplicate-imports': ['error'],
 

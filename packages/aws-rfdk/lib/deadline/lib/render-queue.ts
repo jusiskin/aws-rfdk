@@ -6,7 +6,7 @@
 import {
   AutoScalingGroup,
   BlockDeviceVolume,
-  UpdateType,
+  UpdatePolicy,
 } from '@aws-cdk/aws-autoscaling';
 import {
   ICertificate,
@@ -293,7 +293,7 @@ export class RenderQueue extends RenderQueueBase implements IGrantable {
         // We want the volume to be encrypted. The default AMI size is 30-GiB.
         volume: BlockDeviceVolume.ebs(30, { encrypted: true }),
       }],
-      updateType: UpdateType.ROLLING_UPDATE,
+      updatePolicy: UpdatePolicy.rollingUpdate(),
     });
 
     /**
