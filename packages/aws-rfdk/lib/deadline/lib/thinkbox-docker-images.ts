@@ -20,6 +20,7 @@ import {
   Construct,
   CustomResource,
   Duration,
+  Stack,
   Token,
 } from '@aws-cdk/core';
 
@@ -28,6 +29,7 @@ import {
   RenderQueueImages,
   ThinkboxManagedDeadlineDockerRecipes,
   UsageBasedLicensingImages,
+  VersionQuery,
 } from '.';
 
 /**
@@ -134,6 +136,22 @@ export class ThinkboxDockerImages extends Construct {
 
     this.remoteConnectionServer = this.ecrImageForRecipe(ThinkboxManagedDeadlineDockerRecipes.REMOTE_CONNECTION_SERVER);
     this.licenseForwarder = this.ecrImageForRecipe(ThinkboxManagedDeadlineDockerRecipes.LICENSE_FORWARDER);
+  }
+
+  protected onValidate(): string[] {
+    const validationErrors = [];
+
+    // Using the output of VersionQuery across stacks can cause issues. CloudFormation stack outputs cannot change if
+    // a resource in another stack is referencing it.
+    if (this.version instanceof VersionQuery) {
+      const versionStack = Stack.of(this.version);
+      const thisStack = Stack.of(this);
+      if (versionStack != thisStack) {
+        validationErrors.push('A VersionQuery can not be supplied from a different stack');
+      }
+    }
+
+    return validationErrors;
   }
 
   private ecrImageForRecipe(recipe: ThinkboxManagedDeadlineDockerRecipes): RepositoryImage {

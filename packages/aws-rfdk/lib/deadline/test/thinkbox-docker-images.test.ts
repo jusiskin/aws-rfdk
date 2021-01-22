@@ -9,6 +9,7 @@ import {
   haveResource,
   objectLike,
   stringLike,
+  SynthUtils,
 } from '@aws-cdk/assert';
 import {
   Compatibility,
@@ -34,7 +35,6 @@ import {
 
 describe('ThinkboxDockerRecipes', () => {
   let app: App;
-  let depStack: Stack;
   let stack: Stack;
   let images: ThinkboxDockerImages;
 
@@ -140,9 +140,9 @@ describe('ThinkboxDockerRecipes', () => {
     beforeEach(() => {
       // GIVEN
       app = new App();
-      depStack = new Stack(app, 'DepStack');
-      version = new VersionQuery(depStack, 'Version');
       stack = new Stack(app, 'Stack');
+      // VersionQuery must be in same stack as ThinkboxDockerImages
+      version = new VersionQuery(stack, 'Version');
 
       // WHEN
       images = new ThinkboxDockerImages(stack, 'Images', {
@@ -190,6 +190,22 @@ describe('ThinkboxDockerRecipes', () => {
           })),
         }));
       });
+    });
+
+    test('validates VersionQuery is not in a different stack', () => {
+      // GIVEN
+      const newStack = new Stack(app, 'NewStack');
+      new ThinkboxDockerImages(newStack, 'Images', {
+        version,
+      });
+
+      // WHEN
+      function synth() {
+        SynthUtils.synthesize(newStack);
+      }
+
+      // THEN
+      expect(synth).toThrow('A VersionQuery can not be supplied from a different stack');
     });
   });
 });
